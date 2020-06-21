@@ -1,5 +1,3 @@
-
-
 // Gets list of bus objects on some station and returns MinutesToArrivalList by busId
 const busObjParse = (busInfos, bus) => {
     let busTimes;

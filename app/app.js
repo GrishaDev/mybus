@@ -4,7 +4,8 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 require('dotenv').config()
 
-const indexRouter = require('./app/routes/index');
+const { handleError } = require('./helpers/utils/error');
+const indexRouter = require('./routes/index');
 
 // process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -19,7 +20,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 
 app.use((err,req,res,next)=> {
-    res.status(500).send("error!");
+    handleError(err ,res);
 });
 
 module.exports = app;
