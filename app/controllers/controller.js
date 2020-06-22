@@ -17,26 +17,12 @@ class Controller {
     }
 
     static async addSchedule(body, res) {
-        const hour = body.hour || '*';
-        const minute = body.minute || '*';
-        const second = body.second || 5;
-        const {mail, station, bus } =  body;
-        const rule = `${second} ${minute} ${hour} * * *`;
-        ScheduleService.addSchedule(rule, mail, station, bus);
+        ScheduleService.addSchedule(body);
         res.json('ok');
     }
 
-    static async updateSchedule(body, res) {
-        const id = body.id;
-        const theSchedule = ScheduleService.viewSchedule(id);
-
-        const hour = body.hour || '*';
-        const minute = body.minute || '*';
-        const second = body.second || 5;
-        const {mail, station, bus } =  body;
-        const rule = `${second} ${minute} ${hour} * * *`;
-
-        ScheduleService.updateSchedule(rule, mail, station, bus);
+    static async updateSchedule(id, body, res) {
+        ScheduleService.updateSchedule(id, body);
         res.json('ok');
     }
 

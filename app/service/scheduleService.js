@@ -11,24 +11,33 @@ class ScheduleService {
     } 
 
     static viewSchedule (id) {
-        return schedules.find(obj => obj.id === id);
+        return schedules.find(obj => obj.id === parseInt(id));
     } 
 
-    static addSchedule  (rule, mail, station, bus) {
-        const mailSchedule = createSchedule(id++, rule, station, bus, mail);
-        schedules.push( { id, rule, mailSchedule, mail, station, bus } );
+    static addSchedule (data) {
+        const { mail, station, bus } = data;
+        const rule = { ...data.hour && { hour: data.hour }, ...data.minute && { minute: data.minute }, ...data.second && { second: data.second }};
+
+        const mailSchedule = createSchedule(id, rule, station, bus, mail);
+        schedules.push( { id: id++, rule, mailSchedule, mail, station, bus } );
     }
 
     static updateSchedule (id, data) {
-        let current = schedules.findIndex(obj => obj.id === id);
+        let current = schedules.findIndex(obj => obj.id === parseInt(id));
         schedule.cancelJob(String(schedules[current].id));
-        const { station, bus, mail, rule } = data;
-        const mailSchedule = createSchedule(current, rule, station, bus, mail);
-        schedules[current] = { current, rule, mailSchedule, mail, station, bus };
+
+        const rule = { ...data.hour && { hour: data.hour }, ...data.minute && { minute: data.minute }, ...data.second && { second: data.second }};
+        const newdata = { ...data.mail && { mail: data.mail },
+                          ...data.station && { station: data.station },
+                          ...data.bus && { bus: data.bus }, rule };
+        const newobj = { ...schedules[current], ...newdata};
+
+        const mailSchedule = createSchedule(current, newobj.rule, newobj.station, newobj.bus, newobj.mail);
+        schedules[current] = { ...newobj, mailSchedule };
     } 
 
     static deleteSchedule (id) {
-        let current = schedules.findIndex(obj => obj.id === id);
+        let current = schedules.findIndex(obj => obj.id === parseInt(id));
         schedule.cancelJob(String(schedules[current].id));
         schedules.splice(current, 1);
     } 
