@@ -1,6 +1,7 @@
 const schedule = require('node-schedule');
 const Methods = require('../helpers/methods');
 const Notification = require('../helpers/notification');
+const { ServerError } = require('../helpers/utils/error');
 
 let schedules = [];
 let id = 0;
@@ -24,6 +25,8 @@ class ScheduleService {
 
     static updateSchedule (id, data) {
         let current = schedules.findIndex(obj => obj.id === parseInt(id));
+        if(current === -1) throw new ServerError(404, "id not found");
+
         schedule.cancelJob(String(schedules[current].id));
 
         const rule = { ...data.hour && { hour: data.hour }, ...data.minute && { minute: data.minute }, ...data.second && { second: data.second }};
@@ -34,10 +37,13 @@ class ScheduleService {
 
         const mailSchedule = createSchedule(current, newobj.rule, newobj.station, newobj.bus, newobj.mail);
         schedules[current] = { ...newobj, mailSchedule };
+        return current;
     } 
 
     static deleteSchedule (id) {
         let current = schedules.findIndex(obj => obj.id === parseInt(id));
+        if(current === -1) throw new ServerError(404, "id not found");
+
         schedule.cancelJob(String(schedules[current].id));
         schedules.splice(current, 1);
     } 
