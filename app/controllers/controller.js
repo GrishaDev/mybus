@@ -9,25 +9,25 @@ class Controller {
     }
 
     static async getSchedules(res) {
-        res.json(ScheduleService.viewSchedules() || []);
+        res.json(await ScheduleService.viewSchedules() || []);
     }
 
     static async getSchedule(id, res) {
-        res.json(ScheduleService.viewSchedule(id) || []);
+        res.json(await ScheduleService.viewSchedule(id) || []);
     }
 
     static async addSchedule(body, res) {
-        ScheduleService.addSchedule(body);
+        await ScheduleService.addSchedule(body);
         res.json('ok');
     }
 
     static async updateSchedule(id, body, res) {
-        ScheduleService.updateSchedule(id, body);
+        await ScheduleService.updateSchedule(id, body);
         res.json('ok');
     }
 
     static async deleteSchedule(id, res) {
-        ScheduleService.deleteSchedule(id);
+        await ScheduleService.deleteSchedule(id);
         res.json('ok');
     }
 }

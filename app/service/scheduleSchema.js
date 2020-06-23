@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const scheduleSchema = new mongoose.Schema({
+    _id: {
+        type: String,
+        required: true
+    },
     mail: {
         type: String,
         required: true
@@ -13,18 +17,22 @@ const scheduleSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    hour: {
-        type: Number,
-        required: false
-    },
-    minute: {
-        type: Number,
-        required: false
-    },
-    second: {
-        type: Number,
-        required: false
+    rule: {
+        hour: {
+            type: Number,
+            required: false
+        },
+        minute: {
+            type: Number,
+            required: false
+        },
+        second: {
+            type: Number,
+            required: false
+        }
     }
 });
 
-module.exports = mongoose.model('schedules', scheduleSchema);
+const env = process.env.env;
+
+module.exports = mongoose.model(`schedules${env}`, scheduleSchema);

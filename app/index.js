@@ -1,5 +1,5 @@
 
-var app = require('../app/app.js');
+var app = require('./app.js');
 var debug = require('debug')('mybus:server');
 var http = require('http');
 
