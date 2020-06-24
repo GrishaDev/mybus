@@ -2,7 +2,7 @@
 const ApiSources = require('./apiSources');
 const busObjParse = require('./utils/busApiParser');
 
-class Methods {
+class HelperMethods {
     static async busArrivalList (station, bus) {
         const response = await ApiSources.getBusData(station);
         // if( response.status != 200 ){
@@ -13,4 +13,4 @@ class Methods {
     }
 }
 
-module.exports = Methods;
+module.exports = HelperMethods;

@@ -1,67 +1,75 @@
 const schedule = require('node-schedule');
-const Methods = require('../helpers/methods');
+const HelperMethods = require('../helpers/methods');
 const Notification = require('../helpers/notification');
-const { ServerError } = require('../helpers/utils/error');
-const ScheduleModel = require('./scheduleSchema');
-const shortid = require('shortid');
+// const { ServerError } = require('../helpers/utils/error');
+// const ScheduleModel = require('../controllers/scheduleSchema');
+// const shortid = require('shortid');
 
 // let schedules = [];
 // let id = 0;
 
+const magicMinutes = 5;
+const requestFreq = 5000;
+const requestTries = 10;
+const advanced = false;
+
 const createSchedule = (id, rule, station, bus, mail) => {
-    const a = schedule.scheduleJob(id, rule, async () => {
-        let userData = await Methods.busArrivalList(station, bus).catch(err => console.log(err));
-        if(!userData) userData[0] = "No bus for you";
-        Notification.sendMail(mail, userData)
+    console.log(rule);
+    // rule = { hour: rule.hour || 0, minute: rule.minute || 0, second: rule.second || 0};
+    const job = schedule.scheduleJob(id, rule, async () => {
+        console.log("job started");
+        let notificationMessage = {title: "hey", message: "nothing"};
+        let arrivalTimes;
+
+        if(advanced) 
+            arrivalTimes = await busWaiter(station,bus).catch(err=> console.log("hello?"));
+        else 
+            arrivalTimes = await HelperMethods.busArrivalList(station, bus).catch(err => console.log(err));
+        
+        if(!arrivalTimes) {
+            notificationMessage.title = `No upcoming buses..`;
+        }
+
+        notificationMessage.title = `${bus} coming in ${arrivalTimes[0]} minutes, prepare!`;
+        notificationMessage.message = `Upcoming arrival list of ${bus}: ${JSON.stringify(arrivalTimes)}`;
+
+        Notification.sendMail(mail, notificationMessage)
     });
-    if(!a) console.log(`Schedule ${id} failed running`);
+    if(!job) console.log(`Schedule ${id} failed running`);
 }
 
-const initSchedules = async () => {
-    let dbschedules = await ScheduleModel.find({});
+const cancelSchedule = (id) => {
+    schedule.cancelJob(id);
+}
+
+const initSchedules = async (dbschedules) => {
     for(let {_id, rule, station, bus, mail} of dbschedules) {
         createSchedule(_id, rule.toObject(), station, bus, mail);
     }
     console.log("Schedules running.");
 }
 
-initSchedules();
-
-class ScheduleService {
-    static async viewSchedules () {
-        const dbschedules = await ScheduleModel.find({});
-        if(!dbschedules) throw new ServerError(404, 'No items at all!');
-        return dbschedules;
-    } 
-
-    static async viewSchedule (id) {
-        const schedule = await ScheduleModel.findById(id);
-        if(!schedule) throw new ServerError(404, 'This item not found');
-        return schedule;
-    } 
-
-    static async addSchedule (data) {
-        const _id = shortid.generate();
-        const { rule, station, bus, mail } = data;
-        createSchedule(_id, rule, station, bus, mail);
-        let Schedule = new ScheduleModel({ _id, rule, mail, station, bus })
-        const result = await Schedule.save().catch(err=> console.log(err));
-    }
-
-    static async updateSchedule (id, data) {
-        const dbschedule = await ScheduleModel.findById(id);
-        if(!dbschedule) throw new ServerError(404, 'This item not found');
-        schedule.cancelJob(id);
-        const result = await ScheduleModel.findByIdAndUpdate(id, data).catch(err=> console.log(err));
-        const { rule, station, bus, mail } = result;
-        createSchedule(id, rule.toObject(), station, bus, mail);
-    } 
-
-    static async deleteSchedule (id) {
-        const result = await ScheduleModel.findByIdAndRemove(id).catch(err => console.log(err));
-        if(!result) throw new ServerError(404, 'This item not found');
-    } 
+const busWaiter = (station, bus) => {
+    return new Promise((resolve, reject)=> {
+        let tries = 0;
+        const monitor = setInterval(async ()=> {
+            tries++;
+            if(tries > requestTries){
+                reject();
+                clearInterval(monitor);
+                return;
+            } 
+            arrivalTimes = await HelperMethods.busArrivalList(station, bus).catch(err => console.log(err));
+            if(!arrivalTimes){ 
+                return;
+            }
+            if(arrivalTimes[0] == magicMinutes) {
+                clearInterval(monitor);
+                resolve(arrivalTimes);
+                return;
+            }
+        }, requestFreq);
+    })
 }
 
-
-module.exports = ScheduleService;
+module.exports = { initSchedules, createSchedule, cancelSchedule};

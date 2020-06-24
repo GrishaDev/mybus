@@ -8,7 +8,7 @@ class ServerError extends Error {
 
 const handleError = (err, res) => {
     const { statusCode, message } = err;
-    res.status(statusCode).json({
+    res.status(statusCode || 500).json({
         statusCode,
         message
     });

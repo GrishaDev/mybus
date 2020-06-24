@@ -15,9 +15,9 @@ class Notification {
             let info = await transporter.sendMail({
                 from: `"myBus service" <${process.env.GMAIL_USER}>`,
                 to: adress,
-                subject: `Your bus is coming in ${data[0]} minutes!`,
-                text: String(data),
-                html: String(data),
+                subject: data.title,
+                text: String(data.message),
+                html: String(data.message),
             });
             console.log("Message sent: %s", info.messageId);
         }
