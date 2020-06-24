@@ -14,6 +14,7 @@ mongoose.connect(process.env.DB_URL, { useUnifiedTopology: true , useNewUrlParse
     console.error(`Database connection error: ${err}`);
   })
 
+mongoose.set('useFindAndModify', false);
 
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);

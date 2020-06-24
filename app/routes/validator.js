@@ -2,18 +2,22 @@ const Joi = require('joi');
 const { ServerError } = require('../helpers/utils/error');
 
 const creationSchema = Joi.object({
-    hour: Joi.number().min(0).max(23).optional(),
-    minute: Joi.number().min(0).max(59).optional(),
-    second: Joi.number().min(0).max(59).optional(),
+    rule: Joi.object({
+        hour: Joi.number().min(0).max(23).optional(),
+        minute: Joi.number().min(0).max(59).optional(),
+        second: Joi.number().min(0).max(59).optional(),
+    }).required().min(1),
     mail: Joi.string().email().required(),
     station: Joi.number().required(),
     bus: Joi.number().required(),
 });
 
 const updateSchema = Joi.object({
-    hour: Joi.number().min(0).max(23).optional(),
-    minute: Joi.number().min(0).max(59).optional(),
-    second: Joi.number().min(0).max(59).optional(),
+    rule: Joi.object({
+        hour: Joi.number().min(0).max(23).optional(),
+        minute: Joi.number().min(0).max(59).optional(),
+        second: Joi.number().min(0).max(59).optional(),
+    }).optional().min(1),
     mail: Joi.string().email().optional(),
     station: Joi.number().optional(),
     bus: Joi.number().optional(),

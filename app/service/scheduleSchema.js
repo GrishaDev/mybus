@@ -33,6 +33,6 @@ const scheduleSchema = new mongoose.Schema({
     }
 });
 
-const env = process.env.env;
+const env = process.env.ENVIRONMENT;
 
 module.exports = mongoose.model(`schedules${env}`, scheduleSchema);

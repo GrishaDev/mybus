@@ -5,16 +5,16 @@ const { ServerError } = require('../helpers/utils/error');
 const ScheduleModel = require('./scheduleSchema');
 const shortid = require('shortid');
 
-let schedules = [];
-let id = 0;
+// let schedules = [];
+// let id = 0;
 
 const createSchedule = (id, rule, station, bus, mail) => {
-    console.log(rule);
-    schedule.scheduleJob(id, rule, async () => {
+    const a = schedule.scheduleJob(id, rule, async () => {
         let userData = await Methods.busArrivalList(station, bus).catch(err => console.log(err));
         if(!userData) userData[0] = "No bus for you";
         Notification.sendMail(mail, userData)
     });
+    if(!a) console.log(`Schedule ${id} failed running`);
 }
 
 const initSchedules = async () => {
@@ -25,64 +25,41 @@ const initSchedules = async () => {
     console.log("Schedules running.");
 }
 
-// initSchedules();
+initSchedules();
 
 class ScheduleService {
     static async viewSchedules () {
         const dbschedules = await ScheduleModel.find({});
+        if(!dbschedules) throw new ServerError(404, 'No items at all!');
         return dbschedules;
-        // return schedules;
     } 
 
     static async viewSchedule (id) {
         const schedule = await ScheduleModel.findById(id);
+        if(!schedule) throw new ServerError(404, 'This item not found');
         return schedule;
-        // return schedules.find(obj => obj.id === parseInt(id));
     } 
 
     static async addSchedule (data) {
-        const { mail, station, bus } = data;
-        const rule = { ...data.hour && { hour: data.hour }, ...data.minute && { minute: data.minute }, ...data.second && { second: data.second }};
-
         const _id = shortid.generate();
+        const { rule, station, bus, mail } = data;
         createSchedule(_id, rule, station, bus, mail);
-
-        // schedules.push( { id: id++, rule, mailSchedule, mail, station, bus } );
-
         let Schedule = new ScheduleModel({ _id, rule, mail, station, bus })
-        await Schedule.save().catch(err=> console.log(err));
+        const result = await Schedule.save().catch(err=> console.log(err));
     }
 
     static async updateSchedule (id, data) {
-
-        throw new ServerError(500, "WIP");
-
-        // await ScheduleModel.findByIdAndUpdate(id, data).catch(err=> console.log(err));
-
-        // let current = schedules.findIndex(obj => obj.id === parseInt(id));
-        // if(current === -1) throw new ServerError(404, "id not found");
-
-        // schedule.cancelJob(String(schedules[current].id));
-
-        // const rule = { ...data.hour && { hour: data.hour }, ...data.minute && { minute: data.minute }, ...data.second && { second: data.second }};
-        // const newdata = { ...data.mail && { mail: data.mail },
-        //                   ...data.station && { station: data.station },
-        //                   ...data.bus && { bus: data.bus }, rule };
-        // const newobj = { ...schedules[current], ...newdata};
-
-        // const mailSchedule = createSchedule(current, newobj.rule, newobj.station, newobj.bus, newobj.mail);
-        // schedules[current] = { ...newobj, mailSchedule };
-        // return current;
+        const dbschedule = await ScheduleModel.findById(id);
+        if(!dbschedule) throw new ServerError(404, 'This item not found');
+        schedule.cancelJob(id);
+        const result = await ScheduleModel.findByIdAndUpdate(id, data).catch(err=> console.log(err));
+        const { rule, station, bus, mail } = result;
+        createSchedule(id, rule.toObject(), station, bus, mail);
     } 
 
     static async deleteSchedule (id) {
-        await ScheduleModel.findByIdAndRemove(id).catch(err => console.log(err));
-
-        // let current = schedules.findIndex(obj => obj.id === parseInt(id));
-        // if(current === -1) throw new ServerError(404, "id not found");
-
-        // schedule.cancelJob(String(schedules[current].id));
-        // schedules.splice(current, 1);
+        const result = await ScheduleModel.findByIdAndRemove(id).catch(err => console.log(err));
+        if(!result) throw new ServerError(404, 'This item not found');
     } 
 }
 

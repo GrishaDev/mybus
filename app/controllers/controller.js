@@ -18,17 +18,17 @@ class Controller {
 
     static async addSchedule(body, res) {
         await ScheduleService.addSchedule(body);
-        res.json('ok');
+        res.json('Added new schedule');
     }
 
     static async updateSchedule(id, body, res) {
         await ScheduleService.updateSchedule(id, body);
-        res.json('ok');
+        res.json('Updated this schedule.');
     }
 
     static async deleteSchedule(id, res) {
         await ScheduleService.deleteSchedule(id);
-        res.json('ok');
+        res.json('Deleted this schedule.');
     }
 }
 
