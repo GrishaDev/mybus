@@ -10,6 +10,7 @@ const creationSchema = Joi.object({
     mail: Joi.string().email().required(),
     station: Joi.number().required(),
     bus: Joi.number().required(),
+    scheduleTrigger: Joi.number().optional()
 });
 
 const updateSchema = Joi.object({
@@ -21,6 +22,7 @@ const updateSchema = Joi.object({
     mail: Joi.string().email().optional(),
     station: Joi.number().optional(),
     bus: Joi.number().optional(),
+    scheduleTrigger: Joi.number().allow(null).optional()
 });
 
 const creationValidation = (req, res, next) => {

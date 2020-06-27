@@ -2,8 +2,6 @@ const { initSchedules, createSchedule, cancelSchedule } = require('../service/sc
 const { ServerError } = require('../helpers/utils/error');
 const ScheduleModel = require('./scheduleSchema');
 const HelperMethods = require('../helpers/methods');
-// const ApiSources = require('../helpers/apiSources');
-// const busObjParse = require('../helpers/utils/busApiParser');
 const shortid = require('shortid');
 
 (async()=> {
@@ -20,8 +18,6 @@ class Controller {
     }
 
     static async getSchedules(res) {
-        // res.json(await ScheduleService.viewSchedules() || []);
-
         const dbschedules = await ScheduleModel.find({});
         if(!dbschedules) throw new ServerError(404, 'No items at all!');
         res.json(dbschedules);
@@ -31,18 +27,16 @@ class Controller {
         const schedule = await ScheduleModel.findById(id);
         if(!schedule) throw new ServerError(404, 'This item not found');
         res.json(schedule);
-
-        // res.json(await ScheduleService.viewSchedule(id) || []);
     }
 
     static async addSchedule(data, res) {
         const _id = shortid.generate();
-        const { rule, station, bus, mail } = data;
-        createSchedule(_id, rule, station, bus, mail);
+        const { rule, station, bus, mail, scheduleTrigger } = data;
+        createSchedule(_id, rule, station, bus, mail, scheduleTrigger);
         let Schedule = new ScheduleModel({ _id, rule, mail, station, bus })
         const result = await Schedule.save().catch(err=> console.log(err));
         if(!result) throw new ServerError(500, 'Failed adding new schedule');
-        res.json('Added new schedule');
+        res.json(result);
     }
 
     static async updateSchedule(id, data, res) {
@@ -51,9 +45,9 @@ class Controller {
         const result = await ScheduleModel.findByIdAndUpdate(id, data, {new: true}).catch(err=> console.log(err));
         if(!result) throw new ServerError(500, 'Failed updating new schedule');
         cancelSchedule(id);
-        const { rule, station, bus, mail } = result;
-        createSchedule(id, rule.toObject(), station, bus, mail);
-        res.json('Updated this schedule.');
+        const { rule, station, bus, mail, scheduleTrigger } = result;
+        createSchedule(id, rule.toObject(), station, bus, mail, scheduleTrigger);
+        res.json(result);
     }
 
     static async deleteSchedule(id, res) {
@@ -61,41 +55,6 @@ class Controller {
         if(!result) throw new ServerError(404, 'This item not found');
         res.json('Deleted this schedule.');
     }
-
-
-    // static async viewSchedules () {
-    //     const dbschedules = await ScheduleModel.find({});
-    //     if(!dbschedules) throw new ServerError(404, 'No items at all!');
-    //     return dbschedules;
-    // } 
-
-    // static async viewSchedule (id) {
-    //     const schedule = await ScheduleModel.findById(id);
-    //     if(!schedule) throw new ServerError(404, 'This item not found');
-    //     return schedule;
-    // } 
-
-    // static async addSchedule (data) {
-    //     const _id = shortid.generate();
-    //     const { rule, station, bus, mail } = data;
-    //     createSchedule(_id, rule, station, bus, mail);
-    //     let Schedule = new ScheduleModel({ _id, rule, mail, station, bus })
-    //     const result = await Schedule.save().catch(err=> console.log(err));
-    // }
-
-    // static async updateSchedule (id, data) {
-    //     const dbschedule = await ScheduleModel.findById(id);
-    //     if(!dbschedule) throw new ServerError(404, 'This item not found');
-    //     schedule.cancelJob(id);
-    //     const result = await ScheduleModel.findByIdAndUpdate(id, data).catch(err=> console.log(err));
-    //     const { rule, station, bus, mail } = result;
-    //     createSchedule(id, rule.toObject(), station, bus, mail);
-    // } 
-
-    // static async deleteSchedule (id) {
-    //     const result = await ScheduleModel.findByIdAndRemove(id).catch(err => console.log(err));
-    //     if(!result) throw new ServerError(404, 'This item not found');
-    // }
 }
 
 module.exports = Controller;

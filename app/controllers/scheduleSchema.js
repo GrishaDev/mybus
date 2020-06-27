@@ -30,9 +30,11 @@ const scheduleSchema = new mongoose.Schema({
             type: Number,
             required: false
         }
+    },
+    scheduleTrigger: {
+        type: Number,
+        required: false
     }
 });
 
-const env = process.env.ENVIRONMENT;
-
-module.exports = mongoose.model(`schedules${env}`, scheduleSchema);
+module.exports = mongoose.model(`schedules`, scheduleSchema);

@@ -6,7 +6,19 @@ var http = require('http');
 const mongoose = require('mongoose');
 
 
-mongoose.connect(process.env.DB_URL, { useUnifiedTopology: true , useNewUrlParser: true } )
+const env = process.env.NODE_ENV.trim();
+
+const prod = process.env.DB_URL_PROD;
+const test = process.env.DB_URL_TEST;
+const dev = process.env.DB_URL;
+
+console.log(`${env} environment.`);
+
+const connectionUrl = env === 'production' ? prod : env === 'test' ? test : dev;
+
+console.log(`Connecting to ${connectionUrl}`);
+
+mongoose.connect(connectionUrl, { useUnifiedTopology: true , useNewUrlParser: true } )
   .then(() => {
     console.log('Database connection successful');
   })
@@ -24,9 +36,12 @@ app.set('port', port);
 var server = http.createServer(app);
 
 
-server.listen(port);
+server.listen(port, () => {
+    console.log(`Listening on ${port}`);
+});
+
 server.on('error', onError);
-server.on('listening', onListening);
+// server.on('listening', onListening);
 
 
 function normalizePort(val) {
@@ -77,3 +92,6 @@ function onListening() {
     : 'port ' + addr.port;
   console.log('Listening on ' + bind);
 }
+
+
+module.exports = server;

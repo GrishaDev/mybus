@@ -1,9 +1,6 @@
 const schedule = require('node-schedule');
 const HelperMethods = require('../helpers/methods');
 const Notification = require('../helpers/notification');
-// const { ServerError } = require('../helpers/utils/error');
-// const ScheduleModel = require('../controllers/scheduleSchema');
-// const shortid = require('shortid');
 
 // let schedules = [];
 // let id = 0;
@@ -13,26 +10,24 @@ const requestFreq = 5000;
 const requestTries = 10;
 const advanced = false;
 
-const createSchedule = (id, rule, station, bus, mail) => {
-    console.log(rule);
-    // rule = { hour: rule.hour || 0, minute: rule.minute || 0, second: rule.second || 0};
+const createSchedule = (id, rule, station, bus, mail, scheduleTrigger) => {
     const job = schedule.scheduleJob(id, rule, async () => {
         console.log("job started");
         let notificationMessage = {title: "hey", message: "nothing"};
         let arrivalTimes;
 
-        if(advanced) 
-            arrivalTimes = await busWaiter(station,bus).catch(err=> console.log("hello?"));
+        if(scheduleTrigger) 
+            arrivalTimes = await busWaiter(station, bus, scheduleTrigger).catch(err=> console.log("rejected"));
         else 
             arrivalTimes = await HelperMethods.busArrivalList(station, bus).catch(err => console.log(err));
         
         if(!arrivalTimes) {
             notificationMessage.title = `No upcoming buses..`;
         }
-
-        notificationMessage.title = `${bus} coming in ${arrivalTimes[0]} minutes, prepare!`;
-        notificationMessage.message = `Upcoming arrival list of ${bus}: ${JSON.stringify(arrivalTimes)}`;
-
+        else {
+            notificationMessage.title = `${bus} coming in ${arrivalTimes[0]} minutes, prepare!`;
+            notificationMessage.message = `Upcoming arrival list of ${bus}: ${JSON.stringify(arrivalTimes)}`;
+        }
         Notification.sendMail(mail, notificationMessage)
     });
     if(!job) console.log(`Schedule ${id} failed running`);
@@ -43,13 +38,13 @@ const cancelSchedule = (id) => {
 }
 
 const initSchedules = async (dbschedules) => {
-    for(let {_id, rule, station, bus, mail} of dbschedules) {
-        createSchedule(_id, rule.toObject(), station, bus, mail);
+    for(let {_id, rule, station, bus, mail, scheduleTrigger} of dbschedules) {
+        createSchedule(_id, rule.toObject(), station, bus, mail, scheduleTrigger);
     }
     console.log("Schedules running.");
 }
 
-const busWaiter = (station, bus) => {
+const busWaiter = (station, bus, scheduleTrigger) => {
     return new Promise((resolve, reject)=> {
         let tries = 0;
         const monitor = setInterval(async ()=> {
@@ -63,7 +58,7 @@ const busWaiter = (station, bus) => {
             if(!arrivalTimes){ 
                 return;
             }
-            if(arrivalTimes[0] == magicMinutes) {
+            if(arrivalTimes[0] <= scheduleTrigger) {
                 clearInterval(monitor);
                 resolve(arrivalTimes);
                 return;
