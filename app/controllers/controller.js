@@ -33,7 +33,7 @@ class Controller {
         const _id = shortid.generate();
         const { rule, station, bus, mail, scheduleTrigger } = data;
         createSchedule(_id, rule, station, bus, mail, scheduleTrigger);
-        let Schedule = new ScheduleModel({ _id, rule, mail, station, bus })
+        let Schedule = new ScheduleModel({ _id, rule, mail, station, bus, scheduleTrigger })
         const result = await Schedule.save().catch(err=> console.log(err));
         if(!result) throw new ServerError(500, 'Failed adding new schedule');
         res.json(result);

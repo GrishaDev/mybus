@@ -7,7 +7,7 @@ const Notification = require('../helpers/notification');
 
 const magicMinutes = 5;
 const requestFreq = 5000;
-const requestTries = 10;
+const requestTries = 100;
 const advanced = false;
 
 const createSchedule = (id, rule, station, bus, mail, scheduleTrigger) => {
