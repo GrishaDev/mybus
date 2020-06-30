@@ -1,10 +1,28 @@
 // Hard-coded, replace with your public key
-const publicVapidKey = 'public key from .env';
+
+// const publicVapidKey = 'public key from .env';
+const publicVapidKey = '';
+
+let navigatorString;
+for(obj in navigator.serviceWorker){
+// navigatorString+=obj+':'+JSON.stringify(navigator.serviceWorker[obj])+'\n';
+console.log(obj);
+}
+
+
+let logs = [];
+
+console.log(navigator.serviceWorker);
+console.log(typeof navigator.serviceWorker);
+logs.push(JSON.stringify(typeof navigator.serviceWorker));
+document.getElementById("logs").innerHTML = JSON.stringify(logs);
 
 if ('serviceWorker' in navigator) {
   console.log('Registering service worker');
-
-  run().catch(error => console.error(error));
+  logs.push('Registering service worker');
+  document.getElementById("logs").innerHTML = JSON.stringify(logs);
+  run().catch(error => { logs.push(error);
+  document.getElementById("logs").innerHTML = JSON.stringify(logs); console.error(error) });
 }
 
 function urlBase64ToUint8Array(base64String) {
@@ -29,6 +47,8 @@ async function run() {
   console.log('Registered service worker');
 
   console.log('Registering push');
+  logs.push('Registering push');
+  document.getElementById("logs").innerHTML = JSON.stringify(logs);
   const subscription = await registration.pushManager.
     subscribe({
       userVisibleOnly: true,
@@ -39,6 +59,7 @@ async function run() {
   console.log('Registered push');
   console.log(subscription);
   console.log(JSON.stringify(subscription));
+  document.getElementById("thing").innerHTML = JSON.stringify(subscription);
 //   console.log('Sending push');
 //   await fetch('/subscribe', {
 //     method: 'POST',

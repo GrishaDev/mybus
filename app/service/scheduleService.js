@@ -11,7 +11,6 @@ const requestTries = 100;
 const advanced = false;
 
 const createSchedule = (id, rule, station, bus, mail, scheduleTrigger, webPushSub) => {
-    console.log(typeof webPushSub);
     const job = schedule.scheduleJob(id, rule, async () => {
         console.log("job started");
         let notificationMessage = {title: "hey", message: "nothing"};

@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "garbage",
-            "program": "npm start"
+            "program": "${workspaceFolder}/app/index.js"
         }
     ]
 }
