@@ -1,4 +1,10 @@
 const nodemailer = require("nodemailer");
+const webpush = require('web-push');
+
+const publicVapidKey = process.env.VAPID_PUBLIC;
+const privateVapidKey = process.env.VAPID_PRIVATE;
+
+webpush.setVapidDetails(`mailto:${process.env.GMAIL_USER}`, publicVapidKey, privateVapidKey);
 
 class Notification {
 
@@ -25,6 +31,13 @@ class Notification {
             console.log(err);
         }
     }
+
+    static async sendPush(sub, data) {
+        console.log("Sending push notification");
+        await webpush.sendNotification(sub, JSON.stringify(data)).catch(error => console.error(`Failed sending push :: ${error.stack}`));
+    }
+
+
 }
 
 

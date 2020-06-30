@@ -10,7 +10,8 @@ const requestFreq = 5000;
 const requestTries = 100;
 const advanced = false;
 
-const createSchedule = (id, rule, station, bus, mail, scheduleTrigger) => {
+const createSchedule = (id, rule, station, bus, mail, scheduleTrigger, webPushSub) => {
+    console.log(typeof webPushSub);
     const job = schedule.scheduleJob(id, rule, async () => {
         console.log("job started");
         let notificationMessage = {title: "hey", message: "nothing"};
@@ -28,7 +29,8 @@ const createSchedule = (id, rule, station, bus, mail, scheduleTrigger) => {
             notificationMessage.title = `${bus} coming in ${arrivalTimes[0]} minutes, prepare!`;
             notificationMessage.message = `Upcoming arrival list of ${bus}: ${JSON.stringify(arrivalTimes)}`;
         }
-        Notification.sendMail(mail, notificationMessage)
+        if(webPushSub) Notification.sendPush(webPushSub, notificationMessage);
+        else Notification.sendMail(mail, notificationMessage)
     });
     if(!job) console.log(`Schedule ${id} failed running`);
 }
@@ -38,8 +40,8 @@ const cancelSchedule = (id) => {
 }
 
 const initSchedules = async (dbschedules) => {
-    for(let {_id, rule, station, bus, mail, scheduleTrigger} of dbschedules) {
-        createSchedule(_id, rule.toObject(), station, bus, mail, scheduleTrigger);
+    for(let {_id, rule, station, bus, mail, scheduleTrigger, webPushSub} of dbschedules) {
+        createSchedule(_id, rule.toObject(), station, bus, mail, scheduleTrigger, webPushSub);
     }
     console.log("Schedules running.");
 }

@@ -31,9 +31,9 @@ class Controller {
 
     static async addSchedule(data, res) {
         const _id = shortid.generate();
-        const { rule, station, bus, mail, scheduleTrigger } = data;
-        createSchedule(_id, rule, station, bus, mail, scheduleTrigger);
-        let Schedule = new ScheduleModel({ _id, rule, mail, station, bus, scheduleTrigger })
+        const { rule, station, bus, mail, scheduleTrigger, webPushSub } = data;
+        createSchedule(_id, rule, station, bus, mail, scheduleTrigger, webPushSub);
+        let Schedule = new ScheduleModel({ _id, rule, mail, station, bus, scheduleTrigger, webPushSub })
         const result = await Schedule.save().catch(err=> console.log(err));
         if(!result) throw new ServerError(500, 'Failed adding new schedule');
         res.json(result);
@@ -45,8 +45,8 @@ class Controller {
         const result = await ScheduleModel.findByIdAndUpdate(id, data, {new: true}).catch(err=> console.log(err));
         if(!result) throw new ServerError(500, 'Failed updating new schedule');
         cancelSchedule(id);
-        const { rule, station, bus, mail, scheduleTrigger } = result;
-        createSchedule(id, rule.toObject(), station, bus, mail, scheduleTrigger);
+        const { rule, station, bus, mail, scheduleTrigger, webPushSub } = result;
+        createSchedule(id, rule.toObject(), station, bus, mail, scheduleTrigger, webPushSub);
         res.json(result);
     }
 

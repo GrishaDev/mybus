@@ -34,6 +34,10 @@ const scheduleSchema = new mongoose.Schema({
     scheduleTrigger: {
         type: Number,
         required: false
+    },
+    webPushSub: {
+        type: Object,
+        required: false
     }
 });
 
