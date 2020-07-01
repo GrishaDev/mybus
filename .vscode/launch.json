@@ -7,7 +7,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "garbage",
+            "name": "mybus",
             "program": "${workspaceFolder}/app/index.js"
         }
     ]

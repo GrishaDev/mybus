@@ -36,10 +36,10 @@ describe('GET /schedules', () => {
 describe('GET /schedule/:id', () => {
     it('Should get schedule', async () => {
         const schedule = await chai.request(server).post('/schedule').send(mock1);
-        const res = await chai.request(server).get(`/schedule/${schedule.body._id}`);
+        const res = await chai.request(server).get(`/schedule/${schedule.body.id}`);
         res.should.have.status(200);
         res.body.should.be.a('object');
-        res.body.should.have.property('_id', schedule.body._id);
+        res.body.should.have.property('id', schedule.body.id);
     });
     it('Should give 404 for not existing schedule', async () => {
         const res = await chai.request(server).get(`/schedule/haha`);
@@ -52,7 +52,7 @@ describe('POST /schedule', () => {
         const res = await chai.request(server).post('/schedule').send(mock1);
         res.should.have.status(200);
         res.body.should.be.a('object');
-        res.body.should.have.property('_id');
+        res.body.should.have.property('id');
         res.body.should.have.property('bus', 45);
     });
     it('Should give 400 for bad request', async () => {
@@ -64,14 +64,14 @@ describe('POST /schedule', () => {
 describe('PUT /schedule/:id', () => {
     it('Should update schedule', async () => {
         const schedule = await chai.request(server).post('/schedule').send(mock1);
-        const res = await chai.request(server).put(`/schedule/${schedule.body._id}`).send(randomData);
+        const res = await chai.request(server).put(`/schedule/${schedule.body.id}`).send(randomData);
         res.should.have.status(200);
         res.body.should.be.a('object');
         res.body.should.have.property('bus', 11);
     });
     it('Should give 400 for bad request', async () => {
         const schedule = await chai.request(server).post('/schedule').send(mock1);
-        const res = await chai.request(server).put(`/schedule/${schedule.body._id}`).send(randomDataBad);
+        const res = await chai.request(server).put(`/schedule/${schedule.body.id}`).send(randomDataBad);
         res.should.have.status(400);
     });
     it('Should give 404 for unknown id', async () => {
@@ -84,7 +84,7 @@ describe('PUT /schedule/:id', () => {
 describe('DELETE /schedule/:id', () => {
     it('Should delete schedule', async () => {
         const schedule = await chai.request(server).post('/schedule').send(mock1);
-        const res = await chai.request(server).delete(`/schedule/${schedule.body._id}`);
+        const res = await chai.request(server).delete(`/schedule/${schedule.body.id}`);
         res.should.have.status(200);
     });
     it('Should give 404 for not existing schedule', async () => {

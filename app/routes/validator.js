@@ -11,6 +11,7 @@ const creationSchema = Joi.object({
     station: Joi.number().required(),
     bus: Joi.number().required(),
     scheduleTrigger: Joi.number().optional(),
+    times: Joi.number().optional(),
     webPushSub: Joi.object().optional()
 });
 
@@ -24,6 +25,7 @@ const updateSchema = Joi.object({
     station: Joi.number().optional(),
     bus: Joi.number().optional(),
     scheduleTrigger: Joi.number().allow(null).optional(),
+    times: Joi.number().optional(),
     webPushSub: Joi.object().optional()
 });
 
