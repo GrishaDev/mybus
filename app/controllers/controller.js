@@ -4,6 +4,7 @@ const ScheduleModel = require('./scheduleSchema');
 const HelperMethods = require('../helpers/methods');
 const shortid = require('shortid');
 
+// get all schedules from db and start them(happens on start once)
 (async()=> {
     const dbschedules = await ScheduleModel.find({});
     initSchedules(dbschedules);
@@ -52,6 +53,11 @@ class Controller {
         const result = await ScheduleModel.findByIdAndRemove(id).catch(err => console.log(err));
         if(!result) throw new ServerError(404, 'This item not found');
         res.json('Deleted this schedule.');
+    }
+
+    static async login(data, res) {
+        console.log(data);
+        res.json('logged in');
     }
 }
 

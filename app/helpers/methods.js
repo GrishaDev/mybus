@@ -1,10 +1,11 @@
 
-const ApiSources = require('./apiSources');
+const ApiSources = require('../service/apiSources');
 const busObjParse = require('./utils/busApiParser');
 
 const isMock = process.env.API_MOCK;
 
 class HelperMethods {
+    // Gets and returns minutes to arrival.
     static async busArrivalList (station, bus) {
         if(isMock === 'true') return [5,10,15];
 

@@ -3,73 +3,28 @@ const app = require('./app.js');
 const http = require('http');
 const https = require('https');
 const fs = require("fs");
-const mongoose = require('mongoose');
-const webpush = require('web-push');
+const { configureMongo, configureWebPush, normalizePort } = require('./helpers/startConfigs');
+
 
 // const options = {
 //   key: fs.readFileSync("/srv/www/keys/my-site-key.pem"),
 //   cert: fs.readFileSync("/srv/www/keys/chain.pem")
 // };
 
-let server;
-
-const publicVapidKey = process.env.VAPID_PUBLIC;
-const privateVapidKey = process.env.VAPID_PRIVATE;
-const env = process.env.NODE_ENV.trim();
-const prod = process.env.DB_URL_PROD;
-const test = process.env.DB_URL_TEST;
-const dev = process.env.DB_URL;
-
-console.log(`${env} environment.`);
-
-
-
-// ======================================
-
-const configureWebPush = () => {
-    webpush.setVapidDetails(`mailto:${process.env.GMAIL_USER}`, publicVapidKey, privateVapidKey);
-}
-
-const configureMongo = () => {
-    const connectionUrl = env === 'production' ? prod : env === 'test' ? test : dev;
-    console.log(`Connecting to ${connectionUrl}`);
-
-    mongoose.connect(connectionUrl, { useUnifiedTopology: true , useNewUrlParser: true } )
-    .then(() => {
-        console.log('Database connection successful');
-    })
-    .catch(err => {
-        console.error(`Database connection error: ${err}`);
-    })
-    mongoose.set('useFindAndModify', false);
-}
-
-const configureServer = () => {
-    const port = normalizePort(process.env.PORT || '3000');
-    app.set('port', port);
-    server = http.createServer(app);
-    // const server = https.createServer(options, app);
-    server.listen(port, () => {
-        console.log(`Listening on ${port}`);
-    });
-    server.on('error', onError);
-}
-
-
-
 configureWebPush();
 configureMongo();
-configureServer();
+
+const port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+const server = http.createServer(app);
+// const server = https.createServer(options, app);
+server.listen(port, () => {
+    console.log(`Listening on ${port}`);
+});
+server.on('error', onError);
 
 
-function normalizePort(val) {
-  let port = parseInt(val, 10);
 
-  if (isNaN(port)) return val;
-
-  if (port >= 0) return port;
-  return false;
-}
 
 function onError(error) {
   if (error.syscall !== 'listen') throw error;

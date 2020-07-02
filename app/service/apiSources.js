@@ -1,7 +1,7 @@
 
 const axios = require('axios');
 const https = require('https');
-const { ServerError } = require('./utils/error');
+const { ServerError } = require('../helpers/utils/error');
 
 const request = axios.create({
     httpsAgent: new https.Agent({  

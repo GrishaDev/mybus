@@ -4,6 +4,9 @@ const server = require('../index.js');
 const schedulesSchema = require('../controllers/scheduleSchema');
 chai.use(chaiHttp);
 
+const auth = process.env.AUTH;
+const baseurl = `/api/`
+
 const should = chai.should();
 const expect = chai.expect;
 
@@ -26,7 +29,7 @@ beforeEach((done) => {
 
 describe('GET /schedules', () => {
     it('Should get all the schedules', async () => {
-        const res = await chai.request(server).get('/schedules');
+        const res = await chai.request(server).get('/api/schedules').set('auth', auth);
         res.should.have.status(200);
         res.body.should.be.a('array');
         res.body.length.should.be.eql(0);
@@ -35,67 +38,67 @@ describe('GET /schedules', () => {
 
 describe('GET /schedule/:id', () => {
     it('Should get schedule', async () => {
-        const schedule = await chai.request(server).post('/schedule').send(mock1);
-        const res = await chai.request(server).get(`/schedule/${schedule.body.id}`);
+        const schedule = await chai.request(server).post('/api/schedule').send(mock1).set('auth', auth);
+        const res = await chai.request(server).get(`/api/schedule/${schedule.body.id}`).set('auth', auth);
         res.should.have.status(200);
         res.body.should.be.a('object');
         res.body.should.have.property('id', schedule.body.id);
     });
     it('Should give 404 for not existing schedule', async () => {
-        const res = await chai.request(server).get(`/schedule/haha`);
+        const res = await chai.request(server).get(`/api/schedule/haha`).set('auth', auth);
         res.should.have.status(404);
     });
 });
 
 describe('POST /schedule', () => {
     it('Should create schedule', async () => {
-        const res = await chai.request(server).post('/schedule').send(mock1);
+        const res = await chai.request(server).post('/api/schedule').send(mock1).set('auth', auth);
         res.should.have.status(200);
         res.body.should.be.a('object');
         res.body.should.have.property('id');
         res.body.should.have.property('bus', 45);
     });
     it('Should give 400 for bad request', async () => {
-        const res = await chai.request(server).post('/schedule').send(mock2);
+        const res = await chai.request(server).post('/api/schedule').send(mock2).set('auth', auth);
         res.should.have.status(400);
     });
 });
 
 describe('PUT /schedule/:id', () => {
     it('Should update schedule', async () => {
-        const schedule = await chai.request(server).post('/schedule').send(mock1);
-        const res = await chai.request(server).put(`/schedule/${schedule.body.id}`).send(randomData);
+        const schedule = await chai.request(server).post('/api/schedule').send(mock1).set('auth', auth);
+        const res = await chai.request(server).put(`/api/schedule/${schedule.body.id}`).send(randomData).set('auth', auth);
         res.should.have.status(200);
         res.body.should.be.a('object');
         res.body.should.have.property('bus', 11);
     });
     it('Should give 400 for bad request', async () => {
-        const schedule = await chai.request(server).post('/schedule').send(mock1);
-        const res = await chai.request(server).put(`/schedule/${schedule.body.id}`).send(randomDataBad);
+        const schedule = await chai.request(server).post('/api/schedule').send(mock1).set('auth', auth);
+        const res = await chai.request(server).put(`/api/schedule/${schedule.body.id}`).send(randomDataBad).set('auth', auth);
         res.should.have.status(400);
     });
     it('Should give 404 for unknown id', async () => {
-        const schedule = await chai.request(server).post('/schedule').send(mock1);
-        const res = await chai.request(server).put(`/schedule/unknownId`).send(randomData);
+        const schedule = await chai.request(server).post('/api/schedule').send(mock1).set('auth', auth);
+        const res = await chai.request(server).put(`/api/schedule/unknownId`).send(randomData).set('auth', auth);
         res.should.have.status(404);
     });
 });
 
 describe('DELETE /schedule/:id', () => {
     it('Should delete schedule', async () => {
-        const schedule = await chai.request(server).post('/schedule').send(mock1);
-        const res = await chai.request(server).delete(`/schedule/${schedule.body.id}`);
+        const schedule = await chai.request(server).post('/api/schedule').send(mock1).set('auth', auth);
+        const res = await chai.request(server).delete(`/api/schedule/${schedule.body.id}`).set('auth', auth);
         res.should.have.status(200);
     });
     it('Should give 404 for not existing schedule', async () => {
-        const res = await chai.request(server).delete(`/schedule/unknownId`);
+        const res = await chai.request(server).delete(`/api/schedule/unknownId`).set('auth', auth);
         res.should.have.status(404);
     });
 });
 
 describe('GET /getInfo/:station/:bus', () => {
     it('Should get bus info', async () => {
-        const res = await chai.request(server).get(`/getInfo/${123}/${55}`);
+        const res = await chai.request(server).get(`/api/getInfo/${123}/${55}`).set('auth', auth);
         res.should.have.status(200);
     });
 });

@@ -46,6 +46,7 @@ const scheduleSchema = new mongoose.Schema({
     }
 });
 
+// makes the final object on view prettier with just id field and not _id.
 scheduleSchema.set('toJSON', {
     transform: function (doc, ret, options) {
         ret.id = ret._id;
@@ -55,14 +56,3 @@ scheduleSchema.set('toJSON', {
 }); 
 
 module.exports = mongoose.model(`schedules`, scheduleSchema);
-
-
-// advanced: {
-//     scheduleTrigger: {
-//         type: Number,
-//         required: false
-//     },
-//     long: {
-//         type: Number,
-//         required: false
-//     },

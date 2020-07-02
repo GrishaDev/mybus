@@ -1,13 +1,12 @@
 const schedule = require('node-schedule');
 const HelperMethods = require('../helpers/methods');
-const Notification = require('../helpers/notification');
+const Notification = require('./notification');
 
-const requestFreq = 5000;
-const requestTries = 100;
-
+// creates a node schedule
 const createSchedule = (data) => {
     const { _id, rule, station, bus, mail, scheduleTrigger, times, webPushSub } = data;
-    const job = schedule.scheduleJob(_id, rule, async () => executeSchedule(station, bus, mail, scheduleTrigger, times, webPushSub));
+    const job = schedule.scheduleJob(_id, rule, async () => 
+        executeSchedule(station, bus, mail, scheduleTrigger, times, webPushSub).catch(err=> `job failed => ${err}`));
     if(!job) console.log(`Schedule ${_id} failed running`);
 }
 
@@ -15,6 +14,7 @@ const cancelSchedule = (id) => {
     schedule.cancelJob(id);
 }
 
+// starts all node schedules on start.
 const initSchedules = async (dbschedules) => {
     for(const schedule of dbschedules) {
         createSchedule(schedule.toObject());
@@ -43,6 +43,7 @@ const initSchedules = async (dbschedules) => {
 //     })
 // }
 
+// Waits for bus to appear
 const busWaiter = async (station, bus, scheduleTrigger) => {
     for(let not_i = 0; not_i < 10; not_i++) {
         arrivalTimes = await HelperMethods.busArrivalList(station, bus).catch(err => console.log(err));
@@ -58,6 +59,7 @@ const busWaiter = async (station, bus, scheduleTrigger) => {
 
 const sleep = (howlong) => new Promise(resolve=> setTimeout(resolve, howlong));
 
+// Ran once the node schedule is activated.
 const executeSchedule = async ( station, bus, mail, scheduleTrigger, times, webPushSub ) => {
     console.log("job started");
     let notificationMessage = {title: "hey", message: "nothing"};
