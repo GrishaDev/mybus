@@ -1,7 +1,7 @@
 // Hard-coded, replace with your public key
 
 // const publicVapidKey = 'public key from .env';
-const publicVapidKey = '';
+const publicVapidKey = 'BEAjjH1_s4XxGmA_MgWlq62AYFhzzDW-YRiuPbLZEato5pvuA5arm3j3rtaKDJdo75W4x8GhGykJ_s6bIADNk8Y';
 
 let navigatorString;
 for(obj in navigator.serviceWorker){

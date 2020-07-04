@@ -3,6 +3,8 @@ const { ServerError } = require('../helpers/utils/error');
 const ScheduleModel = require('./scheduleSchema');
 const HelperMethods = require('../helpers/methods');
 const shortid = require('shortid');
+const jwt = require('jsonwebtoken');
+const SECRET = process.env.JWT_SECRET;
 
 // get all schedules from db and start them(happens on start once)
 (async()=> {
@@ -24,8 +26,14 @@ class Controller {
         res.json(dbschedules);
     }
 
-    static async getSchedule(id, res) {
-        const schedule = await ScheduleModel.findById(id);
+    static async getSchedulesByMail(mail, res) {
+        const dbschedules = await ScheduleModel.find({mail: mail});
+        if(!dbschedules) throw new ServerError(404, 'Nothing');
+        res.json(dbschedules);
+    }
+
+    static async getSchedule(res) {
+        const schedule = await ScheduleModel.find({});
         if(!schedule) throw new ServerError(404, 'This item not found');
         res.json(schedule);
     }
@@ -56,8 +64,20 @@ class Controller {
     }
 
     static async login(data, res) {
-        console.log(data);
-        res.json('logged in');
+        const { mail } = data;
+        const token = jwt.sign({
+            mail: `${mail}`,
+            roles: ['user'] 
+        }, SECRET, { expiresIn: "1d" });
+        res.json(token);
+    }
+
+    static async waw(data, res) {
+        const { token } = data;
+        jwt.verify(token, SECRET, (err, payload)=> {
+            if(err) throw new ServerError(401, 'bad');
+            res.json('you can see secret message');
+        });
     }
 }
 
