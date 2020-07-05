@@ -12,7 +12,7 @@ const request = axios.create({
 class ApiSources {
     static async getBusData(station) {
         const data = await request.get(`https://bus.gov.il/WebApi/api/passengerinfo/GetRealtimeBusLineListByBustop/${station}/he/false`)
-        .catch((err)=> { throw new ServerError(err.response.status, "Failed getting bus data") });
+        .catch((err)=> { throw new ServerError(404, "Failed getting bus data") });
         return data;
     }
 }

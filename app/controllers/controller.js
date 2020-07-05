@@ -3,9 +3,6 @@ const { ServerError } = require('../helpers/utils/error');
 const ScheduleModel = require('./scheduleSchema');
 const HelperMethods = require('../helpers/methods');
 const shortid = require('shortid');
-const jwt = require('jsonwebtoken');
-const { db } = require('./scheduleSchema');
-const SECRET = process.env.JWT_SECRET;
 
 // get all schedules from db and start them(happens on start once)
 (async()=> {
@@ -16,30 +13,32 @@ const SECRET = process.env.JWT_SECRET;
 
 class Controller {
 
-    static async getBusInfo(station = 33359, bus = 171, res) {
+    static async getBusInfo(req, res) {
+        const { station, bus } = req.params;
         let userData = await HelperMethods.busArrivalList(station, bus);
         res.json(userData || []);
     }
 
-    static async getSchedules(res) {
+    static async getSchedules(req, res) {
         const dbschedules = await ScheduleModel.find({});
         if(!dbschedules) throw new ServerError(404, 'No items at all!');
         res.json(dbschedules);
     }
 
-    static async getSchedulesByMail(mail, res) {
-        const dbschedules = await ScheduleModel.find({mail: mail});
+    static async getSchedulesByMail(req, res) {
+        const dbschedules = await ScheduleModel.find({mail: req.params.mail});
         if(!dbschedules) throw new ServerError(404, 'Nothing');
         res.json(dbschedules);
     }
 
-    static async getSchedule(id, res) {
-        const schedule = await ScheduleModel.findById(id);
+    static async getSchedule(req, res) {
+        const schedule = await ScheduleModel.findById(req.params.id);
         if(!schedule) throw new ServerError(404, 'This item not found');
         res.json(schedule);
     }
 
-    static async addSchedule(data, res) {
+    static async addSchedule(req, res) {
+        const data = req.body;
         const _id = shortid.generate();
         createSchedule({...data, _id});
         let Schedule = new ScheduleModel({...data, _id})
@@ -48,7 +47,9 @@ class Controller {
         res.json(result);
     }
 
-    static async updateSchedule(id, data, res) {
+    static async updateSchedule(req, res) {
+        const id = req.params.id;
+        const data = req.body;
         const { payload } = res.locals;
         const dbschedule = await ScheduleModel.findById(id);
         if(payload && (dbschedule.mail != payload.mail)) throw new ServerError(401, 'Unauthorized');
@@ -60,30 +61,19 @@ class Controller {
         res.json(result);
     }
 
-    static async deleteSchedule(id, res) {
+    static async deleteSchedule(req, res) {
+        const id = req.params.id;
         const { payload } = res.locals;
         const dbschedule = await ScheduleModel.findById(id);
         if(payload && (dbschedule.mail != payload.mail)) throw new ServerError(401, 'Unauthorized');
         const result = await ScheduleModel.findByIdAndRemove(id).catch(err => console.log(err));
         if(!result) throw new ServerError(404, 'This item not found');
+        cancelSchedule(id);
         res.json('Deleted this schedule.');
     }
 
-    static async login(data, res) {
-        const { mail } = data;
-        const token = jwt.sign({
-            mail: `${mail}`,
-            roles: ['user'] 
-        }, SECRET, { expiresIn: "1d" });
-        res.json(token);
-    }
-
-    static async waw(data, res) {
-        const { token } = data;
-        jwt.verify(token, SECRET, (err, payload)=> {
-            if(err) throw new ServerError(401, 'bad');
-            res.json('you can see secret message');
-        });
+    static async login(req, res) {
+        res.json(res.locals.token); // its getting the token from login middleware in auth file.
     }
 }
 

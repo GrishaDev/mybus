@@ -4,7 +4,7 @@ const server = require('../index.js');
 const schedulesSchema = require('../controllers/scheduleSchema');
 chai.use(chaiHttp);
 
-const auth = process.env.AUTH;
+const auth = process.env.ADMIN_SECRET;
 const baseurl = `/api/`
 
 const should = chai.should();
@@ -33,6 +33,31 @@ describe('GET /schedules', () => {
         res.should.have.status(200);
         res.body.should.be.a('array');
         res.body.length.should.be.eql(0);
+    });
+    it('Should deny getting schedules when not admin', async () => {
+        const res = await chai.request(server).get('/api/schedules');
+        res.should.have.status(401);
+    });
+});
+
+describe('GET /schedules/mail/:mail', () => {
+    it('Should get schedules by mail as admin', async () => {
+        const res = await chai.request(server).get('/api/schedules/mail/meme@gmail.com').set('auth', auth);
+        res.should.have.status(200);
+        res.body.should.be.a('array');
+        res.body.length.should.be.eql(0)
+    });
+    it('Should give 401 if trying to get schedules by mail if its not you', async () => {
+        const token = await chai.request(server).post('/api/login').send({mail:"hacker@gmail.com"});
+        const res = await chai.request(server).get(`/api/schedules/mail/otheruser@gmail.com`).set('auth', token.body);
+        res.should.have.status(401);
+    });
+    it('Should return your schedules if its you.', async () => {
+        const token = await chai.request(server).post('/api/login').send({mail:"legituser@gmail.com"});
+        const res = await chai.request(server).get(`/api/schedules/mail/legituser@gmail.com`).set('auth', token.body);
+        res.should.have.status(200);
+        res.body.should.be.a('array');
+        res.body.length.should.be.eql(0)
     });
 });
 
@@ -82,6 +107,12 @@ describe('PUT /schedule/:id', () => {
         const res = await chai.request(server).put(`/api/schedule/unknownId`).send(randomData).set('auth', auth);
         res.should.have.status(404);
     });
+    it('Should give 401 if trying to update what is not yours.', async () => {
+        const schedule = await chai.request(server).post('/api/schedule').send(mock1).set('auth', auth);
+        const token = await chai.request(server).post('/api/login').send({mail:"hacker@gmail.com"});
+        const res = await chai.request(server).put(`/api/schedule/${schedule.body.id}`).send(randomData).set('auth', token.body);
+        res.should.have.status(401);
+    });
 });
 
 describe('DELETE /schedule/:id', () => {
@@ -93,6 +124,19 @@ describe('DELETE /schedule/:id', () => {
     it('Should give 404 for not existing schedule', async () => {
         const res = await chai.request(server).delete(`/api/schedule/unknownId`).set('auth', auth);
         res.should.have.status(404);
+    });
+    it('Should give 401 if trying to delete what not yours.', async () => {
+        const schedule = await chai.request(server).post('/api/schedule').send(mock1).set('auth', auth);
+        const token = await chai.request(server).post('/api/login').send({mail:"hacker@gmail.com"});
+        const res = await chai.request(server).delete(`/api/schedule/${schedule.body.id}`).set('auth', token.body);
+        res.should.have.status(401);
+    });
+});
+
+describe('POST /login', () => {
+    it('Should login', async () => {
+        const res = await chai.request(server).post('/api/login').send({mail: "random@haha.com"});
+        res.should.have.status(200);
     });
 });
 

@@ -5,25 +5,32 @@ const util = require('util');
 const averify = util.promisify(jwt.verify);
 
 const SECRET = process.env.JWT_SECRET;
-
-
-const correctAuth = process.env.AUTH;
+const admin = process.env.ADMIN_SECRET;
 const env = process.env.NODE_ENV;
+
+const login = (req, res, next) => {
+    const { mail } = req.body;
+    const token = jwt.sign({
+        mail: `${mail}`,
+        roles: ['user'] 
+    }, SECRET, { expiresIn: "1d" });
+    res.locals.token = token;
+    next();
+}
 
 const isAdmin = (req, res, next) => {
     const auth = req.header('auth');
-    if(auth != correctAuth) throw new ServerError(401, 'Unauthorized');
-    next(); 
+    if(auth === admin || env === 'dev') return next();
+    throw new ServerError(401, 'Unauthorized');
 };
 
 const isAllowed = async (req, res, next) => {
     const auth = req.header('auth');
-    if(auth === correctAuth) return next();
+    if(auth === admin || env === 'dev') return next();
 
     try {
         const payload = await averify(auth, SECRET).catch(() => { throw new ServerError(401, 'Unauthorized') });
         res.locals.payload = payload;
-        // res.set('mail', String(payload.mail));
         next();
     }
     catch(err) {
@@ -33,7 +40,7 @@ const isAllowed = async (req, res, next) => {
 
 const cheatTest = (req, res, next) => {
     const auth = req.header('auth');
-    if (auth === correctAuth) return next();
+    if (auth === admin || env === 'dev') return next();
 
     const mail = req.params.mail;
     if(res.locals.payload.mail != mail ) throw new ServerError(401, 'Unauthorized');
@@ -42,4 +49,4 @@ const cheatTest = (req, res, next) => {
 
 // && env != 'dev'
 
-module.exports = { isAdmin, isAllowed, cheatTest }
+module.exports = { isAdmin, isAllowed, cheatTest, login }
