@@ -8,7 +8,11 @@
             "type": "node",
             "request": "launch",
             "name": "mybus",
-            "program": "${workspaceFolder}/app/index.js"
+            "program": "${workspaceFolder}/app/index.js",
+            "skipFiles": [
+                "${workspaceFolder}/node_modules/**/*.js",
+                "<node_internals>/**/*.js"
+            ]
         }
     ]
 }

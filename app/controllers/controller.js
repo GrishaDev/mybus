@@ -4,6 +4,7 @@ const ScheduleModel = require('./scheduleSchema');
 const HelperMethods = require('../helpers/methods');
 const shortid = require('shortid');
 const jwt = require('jsonwebtoken');
+const { db } = require('./scheduleSchema');
 const SECRET = process.env.JWT_SECRET;
 
 // get all schedules from db and start them(happens on start once)
@@ -32,8 +33,8 @@ class Controller {
         res.json(dbschedules);
     }
 
-    static async getSchedule(res) {
-        const schedule = await ScheduleModel.find({});
+    static async getSchedule(id, res) {
+        const schedule = await ScheduleModel.findById(id);
         if(!schedule) throw new ServerError(404, 'This item not found');
         res.json(schedule);
     }
@@ -48,7 +49,9 @@ class Controller {
     }
 
     static async updateSchedule(id, data, res) {
+        const { payload } = res.locals;
         const dbschedule = await ScheduleModel.findById(id);
+        if(payload && (dbschedule.mail != payload.mail)) throw new ServerError(401, 'Unauthorized');
         if(!dbschedule) throw new ServerError(404, 'This item not found');
         const result = await ScheduleModel.findByIdAndUpdate(id, data, {new: true}).catch(err=> console.log(err));
         if(!result) throw new ServerError(500, 'Failed updating new schedule');
@@ -58,6 +61,9 @@ class Controller {
     }
 
     static async deleteSchedule(id, res) {
+        const { payload } = res.locals;
+        const dbschedule = await ScheduleModel.findById(id);
+        if(payload && (dbschedule.mail != payload.mail)) throw new ServerError(401, 'Unauthorized');
         const result = await ScheduleModel.findByIdAndRemove(id).catch(err => console.log(err));
         if(!result) throw new ServerError(404, 'This item not found');
         res.json('Deleted this schedule.');
