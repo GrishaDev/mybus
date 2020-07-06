@@ -45,10 +45,19 @@ const updateValidation = (req, res, next) => {
     next(); 
 };
 
+const isMail = (req, res, next) => {
+    const mailJoi = Joi.object({ mail: Joi.string().email().required() });
+    const { error } = Joi.validate(req.body, mailJoi);
+    if(error) {
+        sendError(error);
+    }
+    next(); 
+};
+
 const sendError = (err) => {
     let msg = err.details[0].message;
     msg = msg.replace(/"/g, '');
     throw new ServerError(400, msg);
 }
 
-module.exports = { creationValidation, updateValidation }
+module.exports = { creationValidation, updateValidation, isMail }

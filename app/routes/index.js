@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/controller.js');
-const { creationValidation, updateValidation } = require('./validator');
+const { creationValidation, updateValidation, isMail } = require('./validator');
 const { isAdmin, isAllowed, cheatTest, login } = require('./auth');
 const wa = require('../helpers/utils/wrapAsync');
 
@@ -12,7 +12,7 @@ router.post('/schedule', isAllowed, creationValidation, wa(controller.addSchedul
 router.put('/schedule/:id', isAllowed, updateValidation, wa(controller.updateSchedule) );
 router.delete('/schedule/:id', isAllowed, wa(controller.deleteSchedule) );
 
-router.post('/login', login, wa(controller.login) );
+router.post('/login', isMail, login, wa(controller.login) );
 
 router.get('/getInfo/:station/:bus', wa(controller.getBusInfo) );
 
