@@ -10,10 +10,10 @@ const baseurl = `/api/`
 const should = chai.should();
 const expect = chai.expect;
 
-const randomData = {station: 555, bus: 11};
+const randomData = {station: 555, bus: 11, name: "lol"};
 const randomDataBad = {station: 555, bus: "haha"};
 
-const mock1 = {station: 123, bus: 45, rule: {hour: 5}, mail: "haha@gmail.com"};
+const mock1 = {station: 123, bus: 45, name: "yes", rule: {hour: 5}, mail: "haha@gmail.com"};
 const mock2 = {station: 123, bus: 45, rule: {hour: 5}, mail: "haha@haha.com", haha: "haha"};
 
 before(async()=> {

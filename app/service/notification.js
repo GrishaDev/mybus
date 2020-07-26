@@ -1,10 +1,10 @@
 const nodemailer = require("nodemailer");
 const webpush = require('web-push');
 
-const publicVapidKey = process.env.VAPID_PUBLIC;
-const privateVapidKey = process.env.VAPID_PRIVATE;
+// const publicVapidKey = process.env.VAPID_PUBLIC;
+// const privateVapidKey = process.env.VAPID_PRIVATE;
 
-webpush.setVapidDetails(`mailto:${process.env.GMAIL_USER}`, publicVapidKey, privateVapidKey);
+// webpush.setVapidDetails(`mailto:${process.env.GMAIL_USER}`, publicVapidKey, privateVapidKey);
 
 class Notification {
 
