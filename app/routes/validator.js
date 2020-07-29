@@ -27,8 +27,8 @@ const updateSchema = Joi.object({
     station: Joi.number().optional(),
     bus: Joi.number().optional(),
     scheduleTrigger: Joi.number().allow(null).optional(),
-    times: Joi.number().optional(),
-    webPushSub: Joi.object().optional()
+    times: Joi.number().allow(null).optional(),
+    webPushSub: Joi.object().allow(false).optional()
 });
 
 const creationValidation = (req, res, next) => {
