@@ -40,10 +40,11 @@ class Controller {
     static async addSchedule(req, res) {
         const data = req.body;
         const _id = shortid.generate();
-        createSchedule({...data, _id});
+        // createSchedule({...data, _id});
         let Schedule = new ScheduleModel({...data, _id})
         const result = await Schedule.save().catch(err=> console.log(err));
         if(!result) throw new ServerError(500, 'Failed adding new schedule');
+        createSchedule(result.toObject());
         res.json(result);
     }
 
