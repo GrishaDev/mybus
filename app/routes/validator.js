@@ -13,7 +13,7 @@ const creationSchema = Joi.object({
     bus: Joi.number().required(),
     scheduleTrigger: Joi.number().optional(),
     times: Joi.number().optional(),
-    webPushSub: Joi.object().optional()
+    webPushSub: Joi.object().allow(false).optional()
 });
 
 const updateSchema = Joi.object({

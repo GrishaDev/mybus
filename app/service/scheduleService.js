@@ -2,6 +2,10 @@ const schedule = require('node-schedule');
 const HelperMethods = require('../helpers/methods');
 const Notification = require('./notification');
 
+
+const WAIT_BETWEEN_CHECKS = 60000;
+const WAIT_BETWEEN_NOTIFICATES = 180000;
+
 // creates a node schedule
 const createSchedule = (data) => {
     const { _id, rule, station, bus, mail, scheduleTrigger, times, webPushSub } = data;
@@ -52,7 +56,7 @@ const busWaiter = async (station, bus, scheduleTrigger) => {
         if (arrivalTimes[0] <= scheduleTrigger) {
             return arrivalTimes;
         }
-        await sleep(60000);
+        await sleep(WAIT_BETWEEN_CHECKS);
     }
     return;
 }
@@ -82,8 +86,8 @@ const executeSchedule = async ( station, bus, mail, scheduleTrigger, times, webP
         if(webPushSub) Notification.sendPush(webPushSub, notificationMessage);
         else Notification.sendMail(mail, notificationMessage);
         if(times > 1) {
-            console.log("waiting 10minutes..");
-            await sleep(600000);
+            console.log("waiting 3minutes..");
+            await sleep(WAIT_BETWEEN_NOTIFICATES);
         }
     }
 }
