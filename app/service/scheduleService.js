@@ -4,7 +4,7 @@ const Notification = require('./notification');
 
 
 const WAIT_BETWEEN_CHECKS = 60000;
-const WAIT_BETWEEN_NOTIFICATES = 180000;
+const WAIT_BETWEEN_NOTIFICATES = 300000;
 
 // creates a node schedule
 const createSchedule = (data) => {
