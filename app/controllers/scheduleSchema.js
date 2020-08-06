@@ -30,14 +30,25 @@ const scheduleSchema = new mongoose.Schema({
             type: Number,
             required: false
         },
+        dayOfWeek: {
+            type: [Number],
+            default: undefined,
+            required: false
+        },
         second: {
             type: Number,
             required: false
         }
     },
     scheduleTrigger: {
-        type: Number,
-        required: false
+        min: {
+            type: Number,
+            required: false
+        },
+        max: {
+            type: Number,
+            required: false
+        }
     },
     times: {
         type: Number,
@@ -47,6 +58,10 @@ const scheduleSchema = new mongoose.Schema({
     webPushSub: {
         type: Object,
         required: false
+    },
+    paused: {
+        type: Boolean,
+        default: false
     }
 });
 

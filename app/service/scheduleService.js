@@ -1,16 +1,22 @@
 const schedule = require('node-schedule');
 const HelperMethods = require('../helpers/methods');
 const Notification = require('./notification');
-
+const subtractMinutes = require('../helpers/utils/scheduleTimeConverter')
 
 const WAIT_BETWEEN_CHECKS = 60000;
 const WAIT_BETWEEN_NOTIFICATES = 300000;
 
+const IS_DEPART = true; // true always for now
+
 // creates a node schedule
 const createSchedule = (data) => {
-    const { _id, rule, station, bus, mail, scheduleTrigger, times, webPushSub } = data;
+    let { _id, rule, station, bus, mail, scheduleTrigger, times, webPushSub, paused } = data;
+    // if(rule.dayOfWeek.length === 0) delete rule.dayOfWeek;
+    if(IS_DEPART && scheduleTrigger) rule = subtractMinutes(rule, scheduleTrigger.max);
+
+    console.log(rule);
     const job = schedule.scheduleJob(_id, rule, async () => 
-        executeSchedule(station, bus, mail, scheduleTrigger, times, webPushSub).catch(err=> `job failed => ${err}`));
+        executeSchedule(station, bus, mail, scheduleTrigger, times, webPushSub, paused).catch(err=> `job failed => ${err}`));
     if(!job) console.log(`Schedule ${_id} failed running`);
 }
 
@@ -49,11 +55,11 @@ const initSchedules = async (dbschedules) => {
 
 // Waits for bus to appear
 const busWaiter = async (station, bus, scheduleTrigger) => {
-    for(let not_i = 0; not_i < 10; not_i++) {
+    for(let not_i = 0; not_i < 30; not_i++) {
         arrivalTimes = await HelperMethods.busArrivalList(station, bus).catch(err => console.log(err));
         if (!arrivalTimes) continue;
 
-        if (arrivalTimes[0] <= scheduleTrigger) {
+        if (arrivalTimes[0] <= scheduleTrigger.max && arrivalTimes[0] >= scheduleTrigger.min) {
             return arrivalTimes;
         }
         await sleep(WAIT_BETWEEN_CHECKS);
@@ -64,7 +70,9 @@ const busWaiter = async (station, bus, scheduleTrigger) => {
 const sleep = (howlong) => new Promise(resolve=> setTimeout(resolve, howlong));
 
 // Ran once the node schedule is activated.
-const executeSchedule = async ( station, bus, mail, scheduleTrigger, times, webPushSub ) => {
+const executeSchedule = async ( station, bus, mail, scheduleTrigger, times, webPushSub, paused ) => {
+    if(paused) { console.log('job is paused so exiting'); return; }
+
     console.log("job started");
     let notificationMessage = {title: "hey", message: "nothing"};
     let arrivalTimes;
