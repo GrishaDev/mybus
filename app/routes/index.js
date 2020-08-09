@@ -14,6 +14,6 @@ router.delete('/schedule/:id', isAllowed, wa(controller.deleteSchedule) );
 
 router.post('/login', isMail, login, wa(controller.login) );
 
-router.get('/getInfo/:station/:bus', wa(controller.getBusInfo) );
+router.get('/bustime/:station/:bus', wa(controller.getBusInfo) );
 
 module.exports = router;

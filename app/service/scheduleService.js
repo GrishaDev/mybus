@@ -14,7 +14,6 @@ const createSchedule = (data) => {
     // if(rule.dayOfWeek.length === 0) delete rule.dayOfWeek;
     if(IS_DEPART && scheduleTrigger) rule = subtractMinutes(rule, scheduleTrigger.max);
 
-    console.log(rule);
     const job = schedule.scheduleJob(_id, rule, async () => 
         executeSchedule(station, bus, mail, scheduleTrigger, times, webPushSub, paused).catch(err=> `job failed => ${err}`));
     if(!job) console.log(`Schedule ${_id} failed running`);
@@ -91,6 +90,9 @@ const executeSchedule = async ( station, bus, mail, scheduleTrigger, times, webP
             notificationMessage.title = `${bus} coming in ${arrivalTimes[0]} minutes, prepare!`;
             notificationMessage.message = `Upcoming arrival list of ${bus}: ${JSON.stringify(arrivalTimes)}`;
         }
+
+        if(paused) { console.log('job is paused so exiting'); return; } // done in case schedule already running when paused
+
         if(webPushSub) Notification.sendPush(webPushSub, notificationMessage);
         else Notification.sendMail(mail, notificationMessage);
         if(times > 1) {
