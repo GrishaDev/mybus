@@ -58,9 +58,15 @@ const busWaiter = async (station, bus, scheduleTrigger) => {
         arrivalTimes = await HelperMethods.busArrivalList(station, bus).catch(err => console.log(err));
         if (!arrivalTimes) continue;
 
-        if (arrivalTimes[0] <= scheduleTrigger.max && arrivalTimes[0] >= scheduleTrigger.min) {
+        const max = scheduleTrigger.max;
+        const min = scheduleTrigger.min;
+
+        if(arrivalTimes.some((time)=> time <= max && time >= min)) {
             return arrivalTimes;
         }
+        // if (arrivalTimes[0] <= scheduleTrigger.max && arrivalTimes[0] >= scheduleTrigger.min) {
+        //     return arrivalTimes;
+        // }
         await sleep(WAIT_BETWEEN_CHECKS);
     }
     return;
