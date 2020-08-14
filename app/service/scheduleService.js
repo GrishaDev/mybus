@@ -3,6 +3,7 @@ const HelperMethods = require('../helpers/methods');
 const Notification = require('./notification');
 const subtractMinutes = require('../helpers/utils/scheduleTimeConverter')
 
+let schedulesToStopInstantly = [];
 const WAIT_BETWEEN_CHECKS = 60000;
 const WAIT_BETWEEN_NOTIFICATES = 300000;
 
@@ -15,7 +16,7 @@ const createSchedule = (data) => {
     if(IS_DEPART && scheduleTrigger) rule = subtractMinutes(rule, scheduleTrigger.max);
 
     const job = schedule.scheduleJob(_id, rule, async () => 
-        executeSchedule(station, bus, mail, scheduleTrigger, times, webPushSub, paused).catch(err=> `job failed => ${err}`));
+        executeSchedule(_id, station, bus, mail, scheduleTrigger, times, webPushSub, paused).catch(err=> `job failed => ${err}`));
     if(!job) console.log(`Schedule ${_id} failed running`);
 }
 
@@ -29,6 +30,11 @@ const initSchedules = async (dbschedules) => {
         createSchedule(schedule.toObject());
     }
     console.log("Schedules running.");
+}
+
+const stopCurrentSchedle = (id) => {
+    if(schedulesToStopInstantly.includes(id)) return;
+    schedulesToStopInstantly.push(id);
 }
 
 // const busWaiterOld = (station, bus, scheduleTrigger) => {
@@ -64,6 +70,7 @@ const busWaiter = async (station, bus, scheduleTrigger) => {
         if(arrivalTimes.some((time)=> time <= max && time >= min)) {
             return arrivalTimes;
         }
+
         // if (arrivalTimes[0] <= scheduleTrigger.max && arrivalTimes[0] >= scheduleTrigger.min) {
         //     return arrivalTimes;
         // }
@@ -75,7 +82,7 @@ const busWaiter = async (station, bus, scheduleTrigger) => {
 const sleep = (howlong) => new Promise(resolve=> setTimeout(resolve, howlong));
 
 // Ran once the node schedule is activated.
-const executeSchedule = async ( station, bus, mail, scheduleTrigger, times, webPushSub, paused ) => {
+const executeSchedule = async (_id, station, bus, mail, scheduleTrigger, times, webPushSub, paused ) => {
     if(paused) { console.log('job is paused so exiting'); return; }
 
     console.log("job started");
@@ -88,7 +95,13 @@ const executeSchedule = async ( station, bus, mail, scheduleTrigger, times, webP
             arrivalTimes = await busWaiter(station, bus, scheduleTrigger).catch(err=> console.log("rejected"));
         else 
             arrivalTimes = await HelperMethods.busArrivalList(station, bus).catch(err => console.log(err));
-        
+
+        if(schedulesToStopInstantly.includes(_id)) {
+            schedulesToStopInstantly.splice(schedulesToStopInstantly.indexOf(_id), 1);
+            console.log("Schedule canceled, exiting.");
+            return;
+        }
+
         if(!arrivalTimes) {
             notificationMessage.title = `No upcoming buses..`;
         }
@@ -108,4 +121,4 @@ const executeSchedule = async ( station, bus, mail, scheduleTrigger, times, webP
     }
 }
 
-module.exports = { initSchedules, createSchedule, cancelSchedule};
+module.exports = { initSchedules, createSchedule, cancelSchedule, stopCurrentSchedle};

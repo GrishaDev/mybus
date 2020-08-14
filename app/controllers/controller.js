@@ -1,4 +1,4 @@
-const { initSchedules, createSchedule, cancelSchedule } = require('../service/scheduleService');
+const { initSchedules, createSchedule, cancelSchedule, stopCurrentSchedle } = require('../service/scheduleService');
 const { ServerError } = require('../helpers/utils/error');
 const ScheduleModel = require('./scheduleSchema');
 const HelperMethods = require('../helpers/methods');
@@ -82,6 +82,12 @@ class Controller {
         if(!result) throw new ServerError(404, 'This item not found');
         cancelSchedule(id);
         res.json('Deleted this schedule.');
+    }
+
+    static async stopCurrentSchedule(req, res) {
+        const id = req.params.id;
+        stopCurrentSchedle(id);
+        res.json('Stopped schedule');
     }
 
     static async login(req, res) {
