@@ -2,6 +2,7 @@ const schedule = require('node-schedule');
 const HelperMethods = require('../helpers/methods');
 const Notification = require('./notification');
 const subtractMinutes = require('../helpers/utils/scheduleTimeConverter')
+const { dateAddMinutes, getOptimalTime } = require('../helpers/utils/dateMethods');
 
 let schedulesToStopInstantly = [];
 const WAIT_BETWEEN_CHECKS = 60000;
@@ -59,17 +60,52 @@ const stopCurrentSchedle = (id) => {
 // }
 
 // Waits for bus to appear
-const busWaiter = async (station, bus, scheduleTrigger) => {
-    for(let not_i = 0; not_i < 30; not_i++) {
+const busWaiter = async (rule, station, bus, scheduleTrigger) => {
+
+    const max = scheduleTrigger.max;
+    let waiting = true;
+
+    while(waiting) {
+        arrivalTimes = await HelperMethods.busArrivalList(station, bus).catch(err => console.log(err));
+        let timeNow = new Date(); // 9:00
+        const timeWithMax = dateAddMinutes(timeNow, max);
+        if(timeWithMax > rule) {
+            waiting = false;
+            break;
+        }
+
+        const highestArrivalTime = Math.max(...arrivalTimes);  // 2, 5, 11
+        let timeWithArrival = dateAddMinutes(timeNow, highestArrivalTime); // 9:11
+            
+        if(timeWithArrival < rule) await sleep(highestArrivalTime-max); 
+        else {
+            waiting = false;
+            const lastSleep = getOptimalTime(arrivalTimes, rule)
+            await sleep(lastSleep-max-5);
+        } 
+    }
+    return await preciseBusWaiter();
+
+}
+
+
+const preciseBusWaiter = async () => {
+    for(let not_i = 0; not_i < 20; not_i++) {
         arrivalTimes = await HelperMethods.busArrivalList(station, bus).catch(err => console.log(err));
         if (!arrivalTimes) continue;
 
         const max = scheduleTrigger.max;
         const min = scheduleTrigger.min;
 
-        if(arrivalTimes.some((time)=> time <= max && time >= min)) {
-            return arrivalTimes;
+        arrivalTimes.filter((time)=> time <= max && time >= min);
+
+        if(arrivalTimes) {
+            return arrivalTimes.sort();
         }
+
+        // if(arrivalTimes.some((time)=> time <= max && time >= min)) {
+        //     return arrivalTimes;
+        // }
 
         // if (arrivalTimes[0] <= scheduleTrigger.max && arrivalTimes[0] >= scheduleTrigger.min) {
         //     return arrivalTimes;
@@ -78,7 +114,6 @@ const busWaiter = async (station, bus, scheduleTrigger) => {
     }
     return;
 }
-
 const sleep = (howlong) => new Promise(resolve=> setTimeout(resolve, howlong));
 
 // Ran once the node schedule is activated.
