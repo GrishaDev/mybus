@@ -25,4 +25,4 @@ const getOptimalTime = (minutesArr, targetDate) => {   // [20, 50, 120 ]  18:30
     return minutesArr[goodIndex]
 }
 
-module.exports = dateAddMinutes;
+module.exports = { dateAddMinutes, getOptimalTime};
