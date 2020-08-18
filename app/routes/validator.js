@@ -3,19 +3,19 @@ const { ServerError } = require('../helpers/utils/error');
 
 const creationSchema = Joi.object({
     rule: Joi.object({
-        hour: Joi.number().min(0).max(23).optional(),
-        minute: Joi.number().min(0).max(59).optional(),
+        hour: Joi.number().min(0).max(23).required(),
+        minute: Joi.number().min(0).max(59).required(),
         dayOfWeek: Joi.array().optional(),
         second: Joi.number().min(0).max(59).optional(),
-    }).required().min(1),
-    name: Joi.string().min(1).max(12).required(),
+    }).required(),
+    name: Joi.string().min(1).max(24).required(),
     mail: Joi.string().email().required(),
     station: Joi.number().required(),
     bus: Joi.number().required(),
     scheduleTrigger: Joi.object({
-        min: Joi.number().allow(null).min(0).max(60).optional(),
+        min: Joi.number().allow(null).min(0).max(60).required(),
         max: Joi.number().allow(null).min(0).max(60).required(),
-    }).optional(),
+    }).required(),
     times: Joi.number().optional(),
     webPushSub: Joi.object().allow(false).optional(),
     paused: Joi.boolean().default(false)
@@ -27,7 +27,7 @@ const updateSchema = Joi.object({
         minute: Joi.number().min(0).max(59).optional(),
         dayOfWeek: Joi.array().optional(),
         second: Joi.number().min(0).max(59).optional(),
-    }).optional().min(1),
+    }).optional(),
     name: Joi.string().min(1).max(24).optional(),
     mail: Joi.string().email().optional(),
     station: Joi.number().optional(),

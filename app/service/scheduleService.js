@@ -20,7 +20,7 @@ const createSchedule = (data) => {
 
     // if(rule.dayOfWeek.length === 0) delete rule.dayOfWeek;
 
-    // if(IS_DEPART) rule = subtractMinutes(rule, 30);
+    if(IS_DEPART) rule = subtractMinutes(rule, 30);
 
     // console.log(rule);
     // console.log(data.rule);
@@ -86,9 +86,9 @@ const busWaiter = async (targetRule, station, bus, scheduleTrigger) => {
         console.log('iteration');
 
         let arrivalTimes = await HelperMethods.busArrivalList(station, bus).catch(err => console.log(err));
-        let timeNow = new Date(); // 9:00
+        let timeNow = new Date(); // 9:00  9:14
         console.log(`now: ${timeNow}`);
-        const timeWithMax = dateAddMinutes(timeNow, max);
+        const timeWithMax = dateAddMinutes(timeNow, max); // 9:18   9:32  9:34
         console.log(`after walk: ${timeWithMax}`);
         if(timeWithMax > targetDate) {
             console.log('walking distance too big, leaving');
@@ -96,8 +96,8 @@ const busWaiter = async (targetRule, station, bus, scheduleTrigger) => {
             break;
         }
 
-        const highestArrivalTime = Math.max(...arrivalTimes);  // 2, 5, 11
-        let timeWithArrival = dateAddMinutes(timeNow, highestArrivalTime); // 9:11
+        const highestArrivalTime = Math.max(...arrivalTimes); // 5,11,32   16,25,41
+        let timeWithArrival = dateAddMinutes(timeNow, highestArrivalTime); // 9:32 10:13
 
         console.log(`highest bus: ${highestArrivalTime}`);
         console.log(`with highest bus: ${timeWithArrival}`);
@@ -107,7 +107,7 @@ const busWaiter = async (targetRule, station, bus, scheduleTrigger) => {
 
             let tosleep = highestArrivalTime-max;
             tosleep = tosleep < 5 ? 5 : tosleep;
-            console.log(`sleeping for ${tosleep} mins`);
+            console.log(`sleeping for ${tosleep} mins`); // 14
             await sleep(tosleep * 60000); 
         } 
         else {
@@ -130,14 +130,14 @@ const preciseBusWaiter = async (scheduleTrigger, station, bus) => {
     console.log('calculating precise time');
     console.log(scheduleTrigger);
 
-    for(let not_i = 0; not_i < 20; not_i++) {
+    for(let not_i = 0; not_i < 40; not_i++) {
         let arrivalTimes = await HelperMethods.busArrivalList(station, bus).catch(err => console.log(err));
         // if (!arrivalTimes) continue;
 
         const max = scheduleTrigger.max;
         const min = scheduleTrigger.min;
 
-        arrivalTimes.filter((time)=> time <= max && time >= min);
+        arrivalTimes = arrivalTimes.filter((time)=> time <= max && time >= min);
 
         if(arrivalTimes.length > 0) {
             console.log('got them!');
@@ -145,13 +145,6 @@ const preciseBusWaiter = async (scheduleTrigger, station, bus) => {
             return arrivalTimes;
         }
 
-        // if(arrivalTimes.some((time)=> time <= max && time >= min)) {
-        //     return arrivalTimes;
-        // }
-
-        // if (arrivalTimes[0] <= scheduleTrigger.max && arrivalTimes[0] >= scheduleTrigger.min) {
-        //     return arrivalTimes;
-        // }
         await sleep(WAIT_BETWEEN_CHECKS);
     }
     return;
@@ -166,22 +159,25 @@ const executeSchedule = async (data) => {
     console.log("job started");
     let arrivalTimes;
 
-    for (let not_i = 0; not_i < times; not_i++) {
-        console.log("checking..");
-        if(scheduleTrigger) 
-            // arrivalTimes = await busWaiter(rule, station, bus, scheduleTrigger).catch(err=> console.log(err));
-            arrivalTimes = await preciseBusWaiter(scheduleTrigger, station, bus);
-        else 
-            arrivalTimes = await HelperMethods.busArrivalList(station, bus).catch(err => console.log(err));
+    // arrivalTimes = await preciseBusWaiter(scheduleTrigger, station, bus).catch(err=> console.log(err));
+    arrivalTimes = await busWaiter(rule, station, bus, scheduleTrigger).catch(err=> console.log(err));
+    notificate(arrivalTimes, bus, webPushSub, mail);
+
+    await sleep(WAIT_BETWEEN_NOTIFICATES);
+
+    for (let not_i = 1; not_i < times; not_i++) {
 
         if(schedulesToStopInstantly.includes(_id)) {
             schedulesToStopInstantly.splice(schedulesToStopInstantly.indexOf(_id), 1);
             console.log("Schedule canceled, exiting.");
             return;
         }
-        
+
         if(paused) { console.log('job is paused so exiting'); return; } // done in case schedule already running when paused
 
+        console.log("checking more..");
+        arrivalTimes = await preciseBusWaiter(scheduleTrigger, station, bus);
+        
         notificate(arrivalTimes, bus, webPushSub, mail);
 
         if(times > 1) {
@@ -206,6 +202,8 @@ const notificate = (arrivalTimes, bus, webPushSub, mail) => {
         `Next bus in ${arrivalTimes[1]} minutes. \nGenerated at ${timeNow}` :
         `Generated at ${timeNow}`
     }
+    console.log('===============');
+    console.log(webPushSub);
 
     if(webPushSub) Notification.sendPush(webPushSub, notificationMessage);
     else Notification.sendMail(mail, notificationMessage);
