@@ -25,4 +25,11 @@ const getOptimalTime = (minutesArr, targetDate) => {   // [20, 50, 120 ]  18:30
     return minutesArr[goodIndex]
 }
 
-module.exports = { dateAddMinutes, getOptimalTime};
+const ruleConverter = rule => {
+    let { hour, minute } = rule;
+    hour = hour < 10 ? `0${hour}` : hour;
+    minute = minute < 10 ? `0${minute}` : minute;
+    return `${hour}:${minute}`;
+}
+
+module.exports = { dateAddMinutes, getOptimalTime, ruleConverter};

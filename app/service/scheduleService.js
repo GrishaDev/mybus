@@ -2,7 +2,7 @@ const schedule = require('node-schedule');
 const HelperMethods = require('../helpers/methods');
 const Notification = require('./notification');
 const subtractMinutes = require('../helpers/utils/scheduleTimeConverter')
-const { dateAddMinutes, getOptimalTime } = require('../helpers/utils/dateMethods');
+const { dateAddMinutes, getOptimalTime, ruleConverter } = require('../helpers/utils/dateMethods');
 
 let schedulesToStopInstantly = [];
 const WAIT_BETWEEN_CHECKS = 60000;
@@ -196,7 +196,12 @@ const notificate = (arrivalTimes, bus, webPushSub, mail) => {
     }
     else {
         const now = new Date();
-        const timeNow = `${now.getHours()}:${now.getMinutes()}`;
+        let hour = now.getHours();
+        let minute = now.getMinutes();
+        hour = hour < 10 ? `0${hour}` : hour;
+        minute = minute < 10 ? `0${minute}` : minute;
+
+        const timeNow = `${hour}:${minute}`;
         notificationMessage.title = `${bus} coming in ${arrivalTimes[0]} minutes, prepare!`;
         notificationMessage.message = arrivalTimes[1] ? 
         `Next bus in ${arrivalTimes[1]} minutes. \nGenerated at ${timeNow}` :
