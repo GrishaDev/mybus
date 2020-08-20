@@ -20,7 +20,7 @@ const createSchedule = (data) => {
 
     // if(rule.dayOfWeek.length === 0) delete rule.dayOfWeek;
 
-    if(IS_DEPART) rule = subtractMinutes(rule, 30);
+    if(IS_DEPART) rule = subtractMinutes(rule, 60);
 
     // console.log(rule);
     // console.log(data.rule);
@@ -128,11 +128,9 @@ const busWaiter = async (targetRule, station, bus, scheduleTrigger) => {
 const preciseBusWaiter = async (scheduleTrigger, station, bus) => {
 
     console.log('calculating precise time');
-    console.log(scheduleTrigger);
 
     for(let not_i = 0; not_i < 40; not_i++) {
         let arrivalTimes = await HelperMethods.busArrivalList(station, bus).catch(err => console.log(err));
-        // if (!arrivalTimes) continue;
 
         const max = scheduleTrigger.max;
         const min = scheduleTrigger.min;
@@ -144,7 +142,6 @@ const preciseBusWaiter = async (scheduleTrigger, station, bus) => {
             console.log(arrivalTimes);
             return arrivalTimes;
         }
-
         await sleep(WAIT_BETWEEN_CHECKS);
     }
     return;
@@ -161,11 +158,16 @@ const executeSchedule = async (data) => {
 
     // arrivalTimes = await preciseBusWaiter(scheduleTrigger, station, bus).catch(err=> console.log(err));
     arrivalTimes = await busWaiter(rule, station, bus, scheduleTrigger).catch(err=> console.log(err));
-    notificate(arrivalTimes, bus, webPushSub, mail);
+    notificate(_id, arrivalTimes, bus, webPushSub, mail);
 
     await sleep(WAIT_BETWEEN_NOTIFICATES);
 
     for (let not_i = 1; not_i < times; not_i++) {
+
+        if(paused) { console.log('job is paused so exiting'); return; } // done in case schedule already running when paused
+
+        console.log("checking more..");
+        arrivalTimes = await preciseBusWaiter(scheduleTrigger, station, bus);
 
         if(schedulesToStopInstantly.includes(_id)) {
             schedulesToStopInstantly.splice(schedulesToStopInstantly.indexOf(_id), 1);
@@ -173,12 +175,7 @@ const executeSchedule = async (data) => {
             return;
         }
 
-        if(paused) { console.log('job is paused so exiting'); return; } // done in case schedule already running when paused
-
-        console.log("checking more..");
-        arrivalTimes = await preciseBusWaiter(scheduleTrigger, station, bus);
-        
-        notificate(arrivalTimes, bus, webPushSub, mail);
+        notificate(_id, arrivalTimes, bus, webPushSub, mail);
 
         if(times > 1) {
             console.log("waiting 3minutes..");
@@ -188,11 +185,11 @@ const executeSchedule = async (data) => {
 }
 
 
-const notificate = (arrivalTimes, bus, webPushSub, mail) => {
+const notificate = (id, arrivalTimes, bus, webPushSub, mail) => {
     let notificationMessage = {title: "hey", message: "nothing"};
 
     if(!arrivalTimes) {
-        notificationMessage.title = `No upcoming buses..`;
+        notificationMessage.title = `No buses found.`;
     }
     else {
         const now = new Date();
@@ -204,11 +201,10 @@ const notificate = (arrivalTimes, bus, webPushSub, mail) => {
         const timeNow = `${hour}:${minute}`;
         notificationMessage.title = `${bus} coming in ${arrivalTimes[0]} minutes, prepare!`;
         notificationMessage.message = arrivalTimes[1] ? 
-        `Next bus in ${arrivalTimes[1]} minutes. \nGenerated at ${timeNow}` :
-        `Generated at ${timeNow}`
+        `Next bus in ${arrivalTimes[1]} minutes.\nGenerated at ${timeNow}` :
+        `Generated at ${timeNow}`;
+        notificationMessage.id = id;
     }
-    console.log('===============');
-    console.log(webPushSub);
 
     if(webPushSub) Notification.sendPush(webPushSub, notificationMessage);
     else Notification.sendMail(mail, notificationMessage);

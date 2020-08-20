@@ -86,6 +86,7 @@ class Controller {
 
     static async stopCurrentSchedule(req, res) {
         const id = req.params.id;
+        console.log(id);
         stopCurrentSchedle(id);
         res.json('Stopped schedule');
     }

@@ -34,8 +34,6 @@ class Notification {
 
     static async sendPush(sub, data) {
         console.log("Sending push notification");
-        console.log(sub);
-        console.log(data);
         await webpush.sendNotification(sub, JSON.stringify(data)).catch(error => console.error(error));
     }//`Failed sending push :: ${error.stack}`
 
