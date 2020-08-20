@@ -7,6 +7,7 @@ const shortid = require('shortid');
 // get all schedules from db and start them(happens on start once)
 (async()=> {
     const dbschedules = await ScheduleModel.find({});
+
     // for(const schedule of dbschedules) {
     //     // if(schedule.scheduleTrigger) {
     //         const rule = schedule.rule;

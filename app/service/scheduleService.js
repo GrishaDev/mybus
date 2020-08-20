@@ -14,13 +14,15 @@ const IS_DEPART = true; // true always for now
 const createSchedule = (data) => {
     // let { _id, rule, station, bus, mail, scheduleTrigger, times, webPushSub, paused } = data;
     // let { _id, rule } = data;
+
     let rule = { ...data.rule };
 
     // console.log(data.rule);
 
-    // if(rule.dayOfWeek.length === 0) delete rule.dayOfWeek;
-
+    
     if(IS_DEPART) rule = subtractMinutes(rule, 60);
+    
+    if(rule.dayOfWeek && rule.dayOfWeek.length === 0) delete rule.dayOfWeek;
 
     // console.log(rule);
     // console.log(data.rule);
